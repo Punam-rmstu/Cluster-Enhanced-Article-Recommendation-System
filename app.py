@@ -24,7 +24,7 @@ st.markdown("This system recommends similar news articles using a **Hybrid appro
 # -------------------------------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("dataset.csv")
+    df = pd.read_csv("News Dataset.csv")
     df['content'] = df['content'].fillna('').str.lower()
     df['title'] = df['title'].fillna('No Title')
     if 'category' in df.columns:
