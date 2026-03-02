@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 # -----------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv('dataset.csv')  # Ensure dataset.csv is in repo
+    df = pd.read_csv('News Dataset.csv') 
     df['content'] = df['content'].fillna('').str.lower()
     df['title'] = df['title'].fillna('No Title')
     if 'category' in df.columns:
