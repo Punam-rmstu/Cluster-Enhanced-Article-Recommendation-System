@@ -1,26 +1,23 @@
+# ==============================================
+# Hybrid Content-Based Article Recommendation
+# Author: Punam Kanungoe
+# ==============================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import KMeans
 from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
-# -------------------------------------------------
-# Page Config
-# -------------------------------------------------
-st.set_page_config(page_title="Cluster-Enhanced Article Recommendation", layout="wide")
-
-st.title("📚 Cluster-Enhanced Article Recommendation System")
-st.markdown("Hybrid Model: TF-IDF + Cosine Similarity + K-Means Clustering")
-
-# -------------------------------------------------
+# -----------------------------
 # Load Dataset
-# -------------------------------------------------
+# -----------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("News Dataset.csv")
+    df = pd.read_csv('dataset.csv')  # Ensure dataset.csv is in repo
     df['content'] = df['content'].fillna('').str.lower()
     df['title'] = df['title'].fillna('No Title')
     if 'category' in df.columns:
@@ -29,74 +26,63 @@ def load_data():
 
 df = load_data()
 
-# -------------------------------------------------
-# TF-IDF & Similarity
-# -------------------------------------------------
-@st.cache_resource
-def build_model(data):
-    tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
-    tfidf_matrix = tfidf.fit_transform(data['content'])
+# -----------------------------
+# Title
+# -----------------------------
+st.title("Hybrid Content-Based Article Recommendation System")
+st.markdown("This system recommends similar news articles using a **Hybrid approach**: Cosine similarity + Clustering.")
 
-    cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+# -----------------------------
+# TF-IDF Matrix
+# -----------------------------
+tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
+tfidf_matrix = tfidf.fit_transform(df['content'])
 
-    # KMeans Clustering
-    num_clusters = min(5, len(data))
-    kmeans = KMeans(n_clusters=num_clusters, random_state=42)
-    clusters = kmeans.fit_predict(tfidf_matrix)
-    data['cluster'] = clusters
+# -----------------------------
+# Cosine Similarity
+# -----------------------------
+cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-    # Cluster Similarity Matrix
-    cluster_sim = np.zeros((len(data), len(data)))
-    for i in range(len(data)):
-        for j in range(len(data)):
-            if data.loc[i, 'cluster'] == data.loc[j, 'cluster']:
-                cluster_sim[i][j] = 1
+# -----------------------------
+# KMeans Clustering
+# -----------------------------
+num_clusters = min(5, len(df))
+kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+df['cluster'] = kmeans.fit_predict(tfidf_matrix)
 
-    # Hybrid Similarity
-    alpha = 0.6
-    beta = 0.4
-    hybrid_sim = alpha * cosine_sim + beta * cluster_sim
+# -----------------------------
+# Hybrid Similarity (Cosine + Cluster)
+# -----------------------------
+cluster_sim = np.zeros((len(df), len(df)))
+for i in range(len(df)):
+    for j in range(len(df)):
+        if df.loc[i, 'cluster'] == df.loc[j, 'cluster']:
+            cluster_sim[i][j] = 1
 
-    return hybrid_sim
+alpha = 0.6  # weight for cosine similarity
+beta = 0.4   # weight for cluster similarity
+hybrid_sim = alpha * cosine_sim + beta * cluster_sim
 
-hybrid_sim = build_model(df)
-
-# -------------------------------------------------
-# Article Selection
-# -------------------------------------------------
-article = st.selectbox("Select an Article", df['title'])
+# -----------------------------
+# Select Article
+# -----------------------------
+article = st.selectbox("Select Article:", df['title'])
 idx = df[df['title'] == article].index[0]
 
-# -------------------------------------------------
-# Recommendations
-# -------------------------------------------------
-scores = sorted(
-    list(enumerate(hybrid_sim[idx])),
-    key=lambda x: x[1],
-    reverse=True
-)[1:6]
+# -----------------------------
+# Top Recommendations
+# -----------------------------
+scores = sorted(list(enumerate(hybrid_sim[idx])), key=lambda x: x[1], reverse=True)[1:6]
 
-st.subheader("🔎 Top 5 Recommendations")
-
+st.subheader("Top Recommendations")
 for i, score in scores:
-    st.write(f"**{df.loc[i,'title']}**  |  Similarity Score: {score:.2f}")
+    st.write(f"{df.loc[i,'title']} — Similarity: {score:.2f}")
 
-# -------------------------------------------------
-# Word Cloud
-# -------------------------------------------------
-st.subheader("☁️ Word Cloud of Recommended Articles")
-
+# -----------------------------
+# Word Cloud of Recommendations
+# -----------------------------
 top_content = " ".join([df.loc[i,'content'] for i,_ in scores])
 wordcloud = WordCloud(width=800, height=400, background_color='white').generate(top_content)
 
-fig, ax = plt.subplots()
-ax.imshow(wordcloud, interpolation='bilinear')
-ax.axis("off")
-
-st.pyplot(fig)
-
-# -------------------------------------------------
-# Footer
-# -------------------------------------------------
-st.markdown("---")
-st.markdown("Developed by Punam Kanungoe | Hybrid Recommendation Model")
+st.subheader("Word Cloud of Recommended Articles")
+st.image(wordcloud.to_array(), use_column_width=True)
