@@ -20,7 +20,7 @@ st.markdown("Hybrid Model: TF-IDF + Cosine Similarity + K-Means Clustering")
 # -------------------------------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("dataset.csv")
+    df = pd.read_csv("News Dataset.csv")
     df['content'] = df['content'].fillna('').str.lower()
     df['title'] = df['title'].fillna('No Title')
     if 'category' in df.columns:
