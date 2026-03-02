@@ -1,138 +1,194 @@
 # Cluster-Enhanced Content-Based Article Recommendation System
 
 **Author:** Punam Kanungoe
+
 **Tech Stack:** Python, Streamlit, Scikit-learn, Pandas, Matplotlib, WordCloud  
 **Approach:** TF-IDF + Cosine Similarity + K-Means Clustering (Hybrid)  
 
 ---
 
 ## Table of Contents
-1. [Project Overview](#project-overview)  
-2. [Dataset](#dataset)  
-3. [Methodology](#methodology)  
-    - [1️⃣ Data Preprocessing](#1️⃣-data-preprocessing)  
-    - [2️⃣ TF-IDF Vectorization](#2️⃣-tf-idf-vectorization)  
-    - [3️⃣ Cosine Similarity](#3️⃣-cosine-similarity)  
-    - [4️⃣ K-Means Clustering](#4️⃣-k-means-clustering)  
-    - [5️⃣ Hybrid Recommendation Model](#5️⃣-hybrid-recommendation-model)  
-4. [Model Evaluation](#model-evaluation)  
-5. [Web Application](#web-application)  
-6. [Installation & Usage](#installation--usage)  
-7. [Future Enhancements](#future-enhancements)  
-8. [License](#license)  
+
+- [Project Overview](#project-overview)
+- [Dataset](#dataset)
+- [Methodology](#methodology)
+  - [Data Preprocessing](#data-preprocessing)
+  - [TF-IDF Vectorization](#tfidf-vectorization)
+  - [Cosine Similarity](#cosine-similarity)
+  - [K-Means Clustering](#k-means-clustering)
+  - [Hybrid Recommendation Model](#hybrid-recommendation-model)
+- [Model Evaluation](#model-evaluation)
+- [Web Application](#web-application)
+- [Installation & Usage](#installation--usage)
+- [Future Enhancements](#future-enhancements)
+- [License](#license)
 
 ---
 
 ## Project Overview
-This project implements a **hybrid content-based article recommendation system** using a combination of **TF-IDF cosine similarity** and **K-Means clustering**. The hybrid approach improves the relevance of recommendations by considering both textual similarity and article clustering.
 
-The system allows users to select an article and get the **top 5 recommended articles**, along with a **word cloud** visualization of the recommended content. Users can dynamically adjust the weights of cosine and cluster similarity.
+This project implements a **hybrid content-based article recommendation system** using a combination of **TF-IDF cosine similarity** and **K-Means clustering**. The hybrid approach improves the relevance of recommendations by considering both textual similarity and article clustering patterns.
+
+The system allows users to:
+- Select an article and receive the **top 5 recommended articles**
+- View a **word cloud** visualization of the recommended content
+- Dynamically adjust the weights of cosine and cluster similarity to customize recommendations
 
 ---
 
 ## Dataset
-- The dataset used in this project was collected from [Kaggle](https://www.kaggle.com/datasets/khushikhushikhushi/comprehensive-news-articles-dataset/data) with at least the following columns:  
-  - `title` – The article title  
-  - `content` – Full text of the article  
-  - `category` – Optional, for evaluation purposes  
 
-- Sample preview:
+The dataset used in this project was collected from [Kaggle - Comprehensive News Articles Dataset](https://www.kaggle.com/datasets/khushikhushikhushi/comprehensive-news-articles-dataset/data) and includes the following columns:
 
-| title | content | category |
+| Column | Description |
+|--------|-------------|
+| `title` | The article title |
+| `content` | Full text of the article |
+| `category` | Article category (optional, for evaluation purposes) |
+
+### Sample Data
+
+| Title | Content | Category |
 |-------|---------|----------|
-| Article 1 | Lorem ipsum ... | World |
-| Article 2 | Dolor sit amet ... | Sports |
+| Article 1 | Lorem ipsum dolor sit amet... | World |
+| Article 2 | Consectetur adipiscing elit... | Sports |
 
 ---
 
 ## Methodology
 
-### 1️⃣ Data Preprocessing
-- Fill missing values in `content` with empty strings.  
-- Convert all text to lowercase.  
-- Optional: Fill missing `title` and `category` fields.  
+### Data Preprocessing
 
-### 2️⃣ TF-IDF Vectorization
-- Convert article content into numerical vectors using **TF-IDF**.  
-- Limit features to 5000 for efficiency.  
+- Fill missing values in `content` with empty strings
+- Convert all text to lowercase for consistency
+- Handle missing `title` and `category` fields
 
-### 3️⃣ Cosine Similarity
-- Compute pairwise **cosine similarity** between articles.  
-- Cosine similarity captures textual closeness between articles.  
+### TF-IDF Vectorization
 
-### 4️⃣ K-Means Clustering
-- Articles are clustered using **K-Means** (default 5 clusters).  
-- Cluster similarity is 1 if two articles are in the same cluster, otherwise 0.  
-- Cluster information is used to enhance recommendations.  
+- Convert article content into numerical vectors using **Term Frequency-Inverse Document Frequency (TF-IDF)**
+- Limit features to **5,000** for computational efficiency
 
-### 5️⃣ Hybrid Recommendation Model
-- Combine **cosine similarity** and **cluster similarity** using weights:  
+### Cosine Similarity
 
-\[
-\text{Hybrid Similarity} = \alpha \cdot \text{Cosine} + \beta \cdot \text{Cluster}, \quad \alpha + \beta = 1
-\]
+- Compute pairwise **cosine similarity** between all articles
+- Captures textual closeness between articles based on content overlap
+- Ranges from 0 (completely dissimilar) to 1 (identical)
 
-- Default: `α = 0.6`, `β = 0.4`  
-- Top 5 articles with highest hybrid similarity are recommended.  
+### K-Means Clustering
+
+- Articles are grouped into **5 clusters** using K-Means algorithm
+- Cluster similarity metric:
+  - **1** if two articles are in the same cluster
+  - **0** if articles are in different clusters
+- Enhances recommendations by grouping semantically related articles
+
+### Hybrid Recommendation Model
+
+The hybrid model combines cosine similarity and cluster similarity using weighted averaging:
+
+$$\text{Hybrid Similarity} = \alpha \cdot \text{Cosine Similarity} + \beta \cdot \text{Cluster Similarity}$$
+
+Where: $\alpha + \beta = 1$
+
+**Default weights:**
+- $\alpha = 0.6$ (cosine similarity weight)
+- $\beta = 0.4$ (cluster similarity weight)
+
+The **top 5 articles** with the highest hybrid similarity scores are recommended to the user.
 
 ---
 
 ## Model Evaluation
-- Precision@5, Recall@5, and F1 score are computed for cosine similarity, Euclidean similarity, and hybrid model.  
-- Hybrid model improves recommendation relevance by leveraging clustering.  
+
+The model's performance is evaluated using Precision@5, Recall@5, and F1-Score metrics across different similarity approaches:
 
 | Method | Precision@5 | Recall@5 | F1 Score |
-|--------|------------|----------|----------|
-| TF-IDF + Cosine |0.362286 | 0.018297 | 0.034835|
+|--------|-------------|----------|----------|
+| TF-IDF + Cosine | 0.362286 | 0.018297 | 0.034835 |
 | TF-IDF + Euclidean | 0.362286 | 0.018297 | 0.034835 |
-| Hybrid (Cosine + Cluster) |0.379143 |	0.019149 |	0.036456 |
+| **Hybrid (Cosine + Cluster)** | **0.379143** | **0.019149** | **0.036456** |
 
----		
+The hybrid model outperforms traditional methods by leveraging clustering information to improve recommendation relevance.
 
-
-## Web Application
-- Built using **Streamlit**.  
-- Features:
-  - Select an article to get recommendations.  
-  - Adjust **cosine (α) and cluster (β) weights** dynamically.  
-  - Show **cluster ID** of selected article.  
-  - Display **top 5 recommended articles**.  
-  - Generate **word cloud** of top recommendations.  
-  - Optional display of **model evaluation metrics**.  
-  -Live Web App
-   You can access the deployed app without running locally:
-  🔗 Click here to try the Hybrid Article Recommendation System
-   https://cluster-enhanced-article-recommendation-system-lshvdvd8zswibui.streamlit.app/ 
 ---
 
-## Installation & Usage (Locally)
+## Web Application
 
-### 1. Clone the Repository
+The application is built using **Streamlit**, providing an intuitive interface for exploring article recommendations.
+
+### Features
+
+- 📄 **Select an article** to get personalized recommendations
+- ⚖️ **Adjust weights dynamically** for cosine (α) and cluster (β) similarity
+- 🏷️ **View cluster ID** of the selected article
+- 📋 **Display top 5 recommended articles** with similarity scores
+- ☁️ **Generate word cloud** visualization of recommended content
+- 📊 **Optional evaluation metrics** display
+
+### Live Demo
+
+🔗 [Try the Hybrid Article Recommendation System](https://cluster-enhanced-article-recommendation-system-lshvdvd8zswibui.streamlit.app/)
+
+You can access and interact with the deployed application without running it locally.
+
+---
+
+## Installation & Usage
+
+### Prerequisites
+Ensure you have **Python 3.8+** and **pip** installed on your system.
+
+### Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/hybrid-article-recommender.git
-cd hybrid-article-recommender
+git clone https://github.com/Punam-rmstu/Cluster-Enhanced-Article-Recommendation-System.git
+cd Cluster-Enhanced-Article-Recommendation-System
+```
 
-## 2. Install Dependencies
+### Install Dependencies
+Install all required packages from the `requirements.txt` file:
 ```bash
 pip install -r requirements.txt
+```
 
-### 3. Run Streamlit Web App
+### Run the Streamlit Web Application
+Launch the application with the following command:
 ```bash
 streamlit run app.py
+```
 
-### 4. Access the App
+### Access the Application
+Once the command executes, the application will automatically open in your default browser. If not, manually navigate to:
+```
+http://localhost:8501
+```
 
-Local URL: http://localhost:8501
+### Optional: Deploy on Streamlit Cloud
+- Push your repository to GitHub
+- Connect your GitHub account to [Streamlit Cloud](https://streamlit.io/cloud)
+- Deploy directly from your repository with a single click
 
-Optional: Deploy on Streamlit Cloud or HuggingFace Spaces.
+### Optional: Deploy on HuggingFace Spaces
+- Create a new Space on HuggingFace
+- Connect your GitHub repository
+- Configure the deployment settings and launch
+
+---
 
 ## Future Enhancements
 
--Include user-based collaborative filtering for hybrid recommendations.
--Add topic modeling with LDA to further improve relevance.
--Support real-time dataset updates via API.
--Improve visualization with interactive plots.
+- **User-Based Collaborative Filtering:** Integrate collaborative filtering to combine content-based and user preference-based recommendations for improved personalization.
+- **Topic Modeling with LDA:** Implement Latent Dirichlet Allocation (LDA) for deeper topic analysis and enhanced relevance in recommendations.
+- **Real-Time Dataset Updates:** Support API integration for dynamic dataset updates without manual intervention.
+- **Advanced Visualizations:** Implement interactive plots using Plotly or Dash for better data exploration and insights.
+- **Multi-Language Support:** Extend the system to process articles in multiple languages.
+- **Performance Optimization:** Optimize similarity calculations using approximate nearest neighbors (ANN) for large-scale datasets.
+- **User Feedback Loop:** Incorporate user feedback mechanisms to continuously improve recommendations over time.
+
+---
 
 ## License
 
-This project is licensed under MIT License.
+**© 2026 Punam Kanungoe. All Rights Reserved.**
+
+This project is provided as-is for educational and reference purposes.
+You may **view and use** the code, but **modifications are strictly prohibited** without written permission.
